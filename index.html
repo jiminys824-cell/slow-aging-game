@@ -1,0 +1,770 @@
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <title>저속노화 분류 게임 · Flash Style (Final-Only Score)</title>
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0"
+    />
+    <style>
+      :root {
+        --bg: #fff5e6;
+        --red: #ff5562;
+        --yellow: #ffd84d;
+        --orange: #ffa74d;
+        --green: #a6f27f;
+        --text: #3a2f2a;
+        --muted: #866b5e;
+        --line: #eecfae;
+        --white: #fff;
+
+        --slow-bg: #e9ffe1;
+        --slow-ring: #7ce05e;
+        --fast-bg: #ffe6e8;
+        --fast-ring: #ff8a98;
+
+        --card-bg: #fff9f0;
+        --shadow: 0 10px 0 rgba(0, 0, 0, 0.06),
+          0 2px 0 rgba(0, 0, 0, 0.15) inset;
+        --radius: 18px;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+      html,
+      body {
+        height: 100%;
+        margin: 0;
+      }
+      body {
+        font-family: Pretendard, -apple-system, BlinkMacSystemFont, "Segoe UI",
+          Roboto, "Noto Sans KR", system-ui, sans-serif;
+        color: var(--text);
+        background: radial-gradient(
+            40px 40px at 20px 20px,
+            rgba(255, 255, 255, 0.65),
+            transparent 60%
+          ),
+          radial-gradient(
+            40px 40px at 60px 70px,
+            rgba(255, 255, 255, 0.55),
+            transparent 60%
+          ),
+          linear-gradient(180deg, #fff9ef, #fff2e2);
+        position: relative;
+      }
+      body:before {
+        content: "";
+        position: fixed;
+        inset: 0;
+        background-image: radial-gradient(var(--yellow) 3px, transparent 3px),
+          radial-gradient(var(--orange) 3px, transparent 3px),
+          radial-gradient(var(--green) 3px, transparent 3px);
+        background-size: 26px 26px, 34px 34px, 40px 40px;
+        background-position: 6px 10px, 12px 18px, 4px 24px;
+        opacity: 0.08;
+        pointer-events: none;
+      }
+
+      #app {
+        max-width: 1040px;
+        margin: 0 auto;
+        padding: 18px;
+      }
+
+      /* Header */
+      .header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 14px;
+        margin-bottom: 14px;
+      }
+      .brand {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+      .logo {
+        width: 34px;
+        height: 34px;
+        border-radius: 50%;
+        background: conic-gradient(
+          from 0deg,
+          var(--red),
+          var(--orange),
+          var(--yellow),
+          var(--green),
+          var(--red)
+        );
+        box-shadow: 0 6px 0 rgba(0, 0, 0, 0.08);
+        position: relative;
+      }
+      .logo:after {
+        content: "🍭";
+        position: absolute;
+        inset: 0;
+        display: grid;
+        place-items: center;
+        font-size: 20px;
+      }
+      h1 {
+        margin: 0;
+        font-weight: 900;
+        letter-spacing: 0.2px;
+        font-size: 22px;
+      }
+      .subtitle {
+        color: var(--muted);
+        font-size: 12px;
+      }
+
+      .status {
+        display: flex;
+        gap: 10px;
+      }
+      .pill {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        background: var(--white);
+        border: 2px solid var(--line);
+        border-radius: 999px;
+        padding: 8px 12px;
+        box-shadow: 0 4px 0 rgba(0, 0, 0, 0.06);
+        font-weight: 800;
+      }
+      .pill .label {
+        font-size: 11px;
+        color: var(--muted);
+        font-weight: 700;
+      }
+      .pill .value {
+        font-size: 16px;
+      }
+
+      /* Panel */
+      .panel {
+        background: var(--card-bg);
+        border: 2px solid var(--line);
+        border-radius: var(--radius);
+        box-shadow: var(--shadow);
+        padding: 14px;
+      }
+
+      .main {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 14px;
+      }
+
+      /* Pool */
+      .pool h2 {
+        margin: 0 0 10px;
+        font-size: 16px;
+        font-weight: 900;
+      }
+      .hint {
+        font-size: 12px;
+        color: var(--muted);
+        margin: 8px 0 0;
+      }
+
+      .cards {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+        gap: 10px;
+      }
+
+      .card {
+        appearance: none;
+        background: var(--white);
+        border: 2px solid var(--line);
+        border-radius: 16px;
+        padding: 12px 10px;
+        font-weight: 900;
+        text-align: center;
+        cursor: grab;
+        touch-action: none;
+        user-select: none;
+        box-shadow: 0 6px 0 rgba(0, 0, 0, 0.08);
+        transition: transform 0.12s ease, box-shadow 0.12s ease,
+          border-color 0.12s ease, background 0.12s ease;
+        position: relative;
+        font-size: 14px;
+      }
+      .card:hover {
+        transform: translateY(-1px);
+      }
+      .card:active {
+        cursor: grabbing;
+        transform: translateY(0);
+        box-shadow: 0 2px 0 rgba(0, 0, 0, 0.1);
+      }
+      .card.dragging {
+        z-index: 9999;
+        transform: rotate(-1.5deg) scale(1.02);
+        box-shadow: 0 14px 0 rgba(0, 0, 0, 0.12);
+      }
+
+      /* Zones */
+      .zones {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 14px;
+      }
+      .zone {
+        border-radius: var(--radius);
+        padding: 12px;
+        border: 2px dashed var(--line);
+        transition: box-shadow 0.12s ease, transform 0.08s ease,
+          border-color 0.12s ease;
+      }
+      .zone h3 {
+        margin: 0 0 8px;
+        font-size: 15px;
+        font-weight: 900;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+      .zone-droparea {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        min-height: 130px;
+      }
+
+      #zone-slow {
+        background: var(--slow-bg);
+        border-color: color-mix(in srgb, var(--slow-ring) 60%, var(--line));
+      }
+      #zone-slow h3::before {
+        content: "🍏";
+      }
+      #zone-fast {
+        background: var(--fast-bg);
+        border-color: color-mix(in srgb, var(--fast-ring) 60%, var(--line));
+      }
+      #zone-fast h3::before {
+        content: "🍩";
+      }
+
+      .zone:hover,
+      .zone:focus-within {
+        transform: translateY(-1px);
+        box-shadow: 0 10px 0 rgba(0, 0, 0, 0.06);
+        border-color: #f6b9af;
+      }
+
+      /* Controls */
+      .controls {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        justify-content: flex-end;
+      }
+      .btn {
+        border: 2px solid var(--line);
+        border-radius: 14px;
+        padding: 10px 14px;
+        font-weight: 900;
+        background: var(--white);
+        cursor: pointer;
+        user-select: none;
+        box-shadow: 0 6px 0 rgba(0, 0, 0, 0.08);
+        transition: transform 0.08s ease, box-shadow 0.08s ease,
+          border-color 0.12s ease;
+      }
+      .btn:hover {
+        transform: translateY(-1px);
+      }
+      .btn:active {
+        transform: translateY(0);
+        box-shadow: 0 3px 0 rgba(0, 0, 0, 0.1);
+      }
+      .btn.primary {
+        background: linear-gradient(180deg, #ffeea1, #ffd75c);
+        border-color: #ffc545;
+      }
+      .btn.green {
+        background: linear-gradient(180deg, #dbffd0, #b9ff9a);
+        border-color: #9bea79;
+      }
+      .btn.pink {
+        background: linear-gradient(180deg, #ffd4da, #ffabb6);
+        border-color: #ff98a6;
+      }
+
+      /* Result Modal */
+      .modal-backdrop {
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.35);
+        display: none;
+        align-items: center;
+        justify-content: center;
+        z-index: 99999;
+      }
+      .modal {
+        width: min(92vw, 460px);
+        background: var(--card-bg);
+        border: 2px solid var(--line);
+        border-radius: 20px;
+        box-shadow: 0 12px 0 rgba(0, 0, 0, 0.18);
+        padding: 18px 18px 16px;
+        text-align: center;
+        word-break: keep-all; /* 한글 어색한 줄바꿈 방지 */
+        line-height: 1.35;
+      }
+      .modal h4 {
+        margin: 0 0 6px;
+        font-size: 20px;
+      }
+      .result-title {
+        margin: 6px 0 2px;
+        font-size: 18px;
+        font-weight: 900;
+      }
+      .result-note {
+        margin: 2px 0 6px;
+        font-size: 12px;
+        color: var(--muted);
+      }
+      .score {
+        margin: 6px 0 8px;
+        font-size: 42px;
+        font-weight: 900;
+        background: linear-gradient(180deg, #ffeea1, #ffd75c);
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
+        letter-spacing: 0.5px;
+      }
+      .modal .buttons {
+        margin-top: 10px;
+        display: flex;
+        gap: 10px;
+        justify-content: center;
+        flex-wrap: wrap;
+      }
+
+      @media (max-width: 760px) {
+        .zones {
+          grid-template-columns: 1fr;
+        }
+      }
+
+      /* iPad touch tweaks */
+      .card,
+      .btn,
+      .zone {
+        -webkit-tap-highlight-color: transparent;
+      }
+      .card:focus,
+      .btn:focus,
+      .zone:focus {
+        outline: 3px dotted #ffb36a;
+        outline-offset: 2px;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="app" role="application" aria-label="저속노화 분류 게임">
+      <header class="header">
+        <div class="brand">
+          <div class="logo" aria-hidden="true"></div>
+          <div>
+            <h1>저속노화 분류 게임</h1>
+            <div class="subtitle">
+              정답 힌트 없이 스스로 분류해 보고, 마지막에 점수를 확인해요!
+            </div>
+          </div>
+        </div>
+        <div class="status" aria-live="polite">
+          <div class="pill">
+            <span class="label">남은 시간</span>
+            <span id="time" class="value">75</span>⏱️
+          </div>
+          <div class="pill">
+            <span class="label">즉시 피드백</span>
+            <span class="value">OFF</span>🙊
+          </div>
+        </div>
+      </header>
+
+      <main class="main">
+        <section class="panel pool" aria-label="식품 카드 풀">
+          <h2>식품 카드</h2>
+          <div id="cards" class="cards" aria-describedby="hint">
+            <!-- SLOW -->
+            <button class="card" data-category="slow">🥑 아보카도</button>
+            <button class="card" data-category="slow">
+              🥣 플레인 그릭요거트(무가당)
+            </button>
+            <button class="card" data-category="slow">🌾 귀리(무가당)</button>
+            <button class="card" data-category="slow">🥜 아몬드(무염)</button>
+            <button class="card" data-category="slow">🍠 군고구마</button>
+            <button class="card" data-category="slow">🍎 사과</button>
+            <button class="card" data-category="slow">🫘 병아리콩</button>
+            <button class="card" data-category="slow">🥦 브로콜리</button>
+            <button class="card" data-category="slow">
+              🥗 올리브오일(소량)
+            </button>
+            <button class="card" data-category="slow">
+              🍞 통밀빵(통곡물 80%↑)
+            </button>
+            <button class="card" data-category="slow">🍚 현미밥</button>
+            <button class="card" data-category="slow">🫐 블루베리</button>
+            <button class="card" data-category="slow">🥛 두유(무가당)</button>
+
+            <!-- FAST -->
+            <button class="card" data-category="fast">🍩 도넛</button>
+            <button class="card" data-category="fast">
+              🧃 과일맛 요거트(가당)
+            </button>
+            <button class="card" data-category="fast">🥤 탄산음료</button>
+            <button class="card" data-category="fast">🍜 컵라면</button>
+            <button class="card" data-category="fast">🍟 감자칩</button>
+            <button class="card" data-category="fast">🍫 초콜릿바</button>
+            <button class="card" data-category="fast">🧋 버블티</button>
+            <button class="card" data-category="fast">🥐 크루아상</button>
+            <button class="card" data-category="fast">
+              🥤 두유(가당·바닐라맛)
+            </button>
+            <button class="card" data-category="fast">
+              ☕ 카라멜 마키아토
+            </button>
+            <button class="card" data-category="fast">
+              🍱 인스턴트 볶음밥
+            </button>
+            <button class="card" data-category="fast">
+              🧀 가공치즈 슬라이스
+            </button>
+            <button class="card" data-category="fast">
+              🥣 시판 그래놀라(설탕 코팅)
+            </button>
+          </div>
+          <p id="hint" class="hint">
+            카드를 길~게 눌러 끌어다가 구역에 놓아보자! (진행 중엔 힌트가
+            없어요. 제출하거나 시간이 끝나면 점수가 보여요)
+          </p>
+        </section>
+
+        <section class="zones">
+          <div
+            id="zone-slow"
+            class="panel zone"
+            data-accept="slow"
+            tabindex="0"
+            aria-label="저속노화 식품"
+          >
+            <h3>저속노화 식품</h3>
+            <div class="zone-droparea"></div>
+          </div>
+          <div
+            id="zone-fast"
+            class="panel zone"
+            data-accept="fast"
+            tabindex="0"
+            aria-label="고속노화 식품"
+          >
+            <h3>고속노화 식품</h3>
+            <div class="zone-droparea"></div>
+          </div>
+        </section>
+
+        <section class="controls">
+          <button id="startBtn" class="btn primary">▶ 시작(타이머)</button>
+          <button id="submitBtn" class="btn green">✅ 제출</button>
+          <button id="shuffleBtn" class="btn">🔀 섞기</button>
+          <button id="resetBtn" class="btn pink">↺ 리셋</button>
+        </section>
+      </main>
+    </div>
+
+    <!-- 결과 모달 -->
+    <div
+      id="resultModal"
+      class="modal-backdrop"
+      aria-modal="true"
+      role="dialog"
+      aria-labelledby="resultTitle"
+    >
+      <div class="modal">
+        <h4 id="resultTitle">나의 저속노화 점수</h4>
+        <div id="finalScore" class="score">0점</div>
+        <div id="resultTitleLine" class="result-title"></div>
+        <div id="resultNoteLine" class="result-note" aria-hidden="true"></div>
+        <div class="buttons">
+          <button id="againBtn" class="btn primary">다시 하기</button>
+          <button id="closeBtn" class="btn">닫기</button>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      // Elements
+      const timeEl = document.getElementById("time");
+      const cardsContainer = document.getElementById("cards");
+      const zoneSlowArea = document
+        .getElementById("zone-slow")
+        .querySelector(".zone-droparea");
+      const zoneFastArea = document
+        .getElementById("zone-fast")
+        .querySelector(".zone-droparea");
+      const startBtn = document.getElementById("startBtn");
+      const resetBtn = document.getElementById("resetBtn");
+      const shuffleBtn = document.getElementById("shuffleBtn");
+      const submitBtn = document.getElementById("submitBtn");
+
+      const resultModal = document.getElementById("resultModal");
+      const finalScoreEl = document.getElementById("finalScore");
+      const resultTitleLine = document.getElementById("resultTitleLine");
+      const resultNoteLine = document.getElementById("resultNoteLine");
+      const againBtn = document.getElementById("againBtn");
+      const closeBtn = document.getElementById("closeBtn");
+
+      // Timer
+      let timer = null;
+      let timeLeft = 75;
+
+      // Drag state
+      let dragging = null;
+      let dragStart = { x: 0, y: 0 };
+      let elemStart = { x: 0, y: 0 };
+      let originParent = null;
+      let originNext = null;
+
+      // Utils
+      const shuffle = (container) => {
+        const arr = Array.from(container.children);
+        for (let i = arr.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [arr[i], arr[j]] = [arr[j], arr[i]];
+        }
+        arr.forEach((el) => container.appendChild(el));
+      };
+
+      const startTimer = () => {
+        clearInterval(timer);
+        timer = setInterval(() => {
+          timeLeft -= 1;
+          timeEl.textContent = timeLeft;
+          if (timeLeft <= 0) {
+            clearInterval(timer);
+            finishGame();
+          }
+        }, 1000);
+      };
+
+      const lockGame = (locked) => {
+        document
+          .querySelectorAll(".card")
+          .forEach((c) => (c.disabled = locked));
+      };
+
+      const resetGame = () => {
+        [zoneSlowArea, zoneFastArea].forEach((z) => {
+          Array.from(z.children).forEach((el) =>
+            cardsContainer.appendChild(el)
+          );
+        });
+        document.querySelectorAll(".card").forEach((c) => {
+          c.classList.remove("placed", "dragging");
+          c.style.cssText = "";
+        });
+        clearInterval(timer);
+        timeLeft = 75;
+        timeEl.textContent = timeLeft;
+        lockGame(false);
+        hideResult();
+      };
+
+      const computeScore = () => {
+        const total = document.querySelectorAll(".card").length;
+        let correct = 0;
+        document.querySelectorAll(".card").forEach((el) => {
+          const parent = el.parentNode;
+          const inSlow = parent === zoneSlowArea;
+          const inFast = parent === zoneFastArea;
+          if (
+            (inSlow && el.dataset.category === "slow") ||
+            (inFast && el.dataset.category === "fast")
+          ) {
+            correct += 1;
+          }
+        });
+        const percent = Math.round((correct / total) * 100);
+        return { correct, total, percent };
+      };
+
+      // Result message builder
+      function buildResultText(percent) {
+        // default: clear note
+        let title = "";
+        let note = ""; // small text (only for top tier as requested)
+
+        if (percent >= 90) {
+          title = `당신은 저속노화 마스터 거북이! 🐢💛`;
+          note = `완벽한 식습관으로 나이를 천천히, 멋지게 쌓아가고 있어요!`;
+        } else if (percent >= 60) {
+          title = `당신은 저속노화를 꿈꾸는 코알라! 🐨✨`;
+          note = ``; // no note
+        } else if (percent >= 30) {
+          title = `당신은 노화 속도 조절이 필요한 자동차! 🚗💨`;
+          note = ``;
+        } else {
+          title = `당신은 고속노화 폭주기관차! 🚆💨`;
+          note = ``;
+        }
+        return { title, note };
+      }
+
+      const finishGame = () => {
+        clearInterval(timer);
+        lockGame(true);
+        const { correct, total, percent } = computeScore();
+        finalScoreEl.textContent = `${percent}점`;
+
+        const { title, note } = buildResultText(percent);
+        resultTitleLine.textContent = title;
+        resultNoteLine.textContent = note;
+        resultNoteLine.style.display = note ? "block" : "none";
+
+        showResult();
+      };
+
+      const showResult = () => {
+        resultModal.style.display = "flex";
+      };
+      const hideResult = () => {
+        resultModal.style.display = "none";
+      };
+
+      // Placement (no feedback during play)
+      const tryPlace = (el) => {
+        const dropTargets = [{ area: zoneSlowArea }, { area: zoneFastArea }];
+        const elRect = el.getBoundingClientRect();
+        let dropped = false;
+
+        for (const t of dropTargets) {
+          const r = t.area.getBoundingClientRect();
+          const overlap = !(
+            elRect.right < r.left ||
+            elRect.left > r.right ||
+            elRect.bottom < r.top ||
+            elRect.top > r.bottom
+          );
+          if (overlap) {
+            t.area.appendChild(el);
+            el.classList.add("placed");
+            el.style.cssText = "";
+            dropped = true;
+            break;
+          }
+        }
+        if (!dropped) {
+          if (originNext && originNext.parentNode === originParent) {
+            originParent.insertBefore(el, originNext);
+          } else {
+            originParent.appendChild(el);
+          }
+          el.style.cssText = "";
+        }
+      };
+
+      // Pointer drag
+      const onPointerDown = (e) => {
+        const target = e.target.closest(".card");
+        if (!target || target.disabled) return;
+        e.preventDefault();
+
+        dragging = target;
+        const rect = dragging.getBoundingClientRect();
+
+        originParent = dragging.parentNode;
+        originNext = dragging.nextElementSibling;
+
+        dragging.style.position = "fixed";
+        dragging.style.left = rect.left + "px";
+        dragging.style.top = rect.top + "px";
+        dragging.style.width = rect.width + "px";
+        dragging.style.touchAction = "none";
+        dragging.classList.add("dragging");
+
+        dragStart.x = e.clientX ?? (e.touches && e.touches[0]?.clientX);
+        dragStart.y = e.clientY ?? (e.touches && e.touches[0]?.clientY);
+        elemStart.x = rect.left;
+        elemStart.y = rect.top;
+
+        document.addEventListener("pointermove", onPointerMove, {
+          passive: false,
+        });
+        document.addEventListener("pointerup", onPointerUp, { passive: false });
+      };
+
+      const onPointerMove = (e) => {
+        if (!dragging) return;
+        e.preventDefault();
+        const clientX = e.clientX ?? (e.touches && e.touches[0]?.clientX);
+        const clientY = e.clientY ?? e.touches[0]?.clientY;
+        const dx = clientX - dragStart.x;
+        const dy = clientY - dragStart.y;
+        dragging.style.left = elemStart.x + dx + "px";
+        dragging.style.top = elemStart.y + dy + "px";
+      };
+
+      const onPointerUp = (e) => {
+        if (!dragging) return;
+        e.preventDefault();
+        dragging.classList.remove("dragging");
+        tryPlace(dragging);
+        dragging = null;
+        document.removeEventListener("pointermove", onPointerMove);
+        document.removeEventListener("pointerup", onPointerUp);
+      };
+
+      document.addEventListener("pointerdown", onPointerDown, {
+        passive: false,
+      });
+
+      // Keyboard a11y: toggle slow -> fast -> pool
+      document.addEventListener("keydown", (e) => {
+        const focused = document.activeElement;
+        if (!focused?.classList?.contains("card")) return;
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          const inSlow = focused.parentNode === zoneSlowArea;
+          const inFast = focused.parentNode === zoneFastArea;
+          if (!inSlow && !inFast) zoneSlowArea.appendChild(focused);
+          else if (inSlow) zoneFastArea.appendChild(focused);
+          else cardsContainer.appendChild(focused);
+          focused.classList.add("placed");
+        }
+      });
+
+      // Buttons
+      startBtn.addEventListener("click", () => {
+        clearInterval(timer);
+        timeLeft = 75;
+        timeEl.textContent = timeLeft;
+        startTimer();
+      });
+      submitBtn.addEventListener("click", finishGame);
+      resetBtn.addEventListener("click", resetGame);
+      shuffleBtn.addEventListener("click", () => shuffle(cardsContainer));
+
+      againBtn.addEventListener("click", () => {
+        hideResult();
+        resetGame();
+      });
+      closeBtn.addEventListener("click", hideResult);
+
+      // initial shuffle
+      shuffle(cardsContainer);
+    </script>
+  </body>
+</html>
